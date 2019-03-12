@@ -51,12 +51,16 @@ defmodule Promethex do
       end)
       |> Enum.join("\n")
     body = body <> "\n"
-    HTTPoison.post("http://prometheus:9091/metrics/job/#{prefix}", body)
+    HTTPoison.post("#{prometheus_url}/metrics/job/#{prefix}", body)
     {:noreply, state}
   end
 
+  def prometheus_url() do
+    System.get_env("PROMETHEUS_URL") || "http://prometheus:9091"
+  end
+
   def push_metrics() do
-    :timer.sleep(1000 * 5) # wait 5 seconds
+    :timer.sleep(1000 * 60) # wait 60 seconds
     GenServer.cast(__MODULE__, :push_to_prometheus)
     push_metrics()
   end
