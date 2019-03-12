@@ -52,6 +52,15 @@ defmodule Promethex do
       |> Enum.join("\n")
     body = body <> "\n"
     HTTPoison.post("#{prometheus_url}/metrics/job/#{prefix}", body)
+    |> case do
+      {:ok, %{status_code: code}} when code >= 300 ->
+        IO.puts "ERROR PUSHING TO PROMETHEUS: status-code = #{code}"
+      {:error, %{reason: reason}} ->
+        IO.puts "ERROR PUSHING TO PROMETHEUS: reason = #{reason}"
+      _ ->
+        :ok
+    end
+
     {:noreply, state}
   end
 
