@@ -66,7 +66,7 @@ defmodule Promethex do
   end
 
   def prometheus_url() do
-    System.get_env("PROMETHEUS_URL") || "http://prometheus:9091"
+    System.get_env("PROMETHEUS_URL") || "http://prometheus-push-gw:9091"
   end
 
   def push_metrics() do
