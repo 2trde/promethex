@@ -23,6 +23,18 @@ defmodule Promethex do
     GenServer.cast(__MODULE__, {:inc, name, ctx})
   end
 
+  def put(name, value) do
+    GenServer.cast(__MODULE__, {:put, name, value})
+  end
+
+  def put(name, value, ctx) when is_list(ctx) do
+    GenServer.cast(__MODULE__, {:put, name, value, ctx |> Enum.into(%{})})
+  end
+
+  def put(name, value, ctx) when is_map(ctx) do
+    GenServer.cast(__MODULE__, {:put, name, value, ctx})
+  end
+
   def handle_cast({:inc, name}, %{values: values} = state) do
     last = Map.get(values, name, 0)
     {:noreply, put_in(state.values, Map.put(values, name, last+1))}
@@ -34,6 +46,15 @@ defmodule Promethex do
     {:noreply, put_in(state.values, Map.put(values, key_map, last+1))}
   end
 
+  def handle_cast({:put, value, name}, %{values: values} = state) do
+    {:noreply, put_in(state.values, Map.put(values, name, value))}
+  end
+
+  def handle_cast({:put, value, name, ctx}, %{values: values} = state) do
+    key_map = Map.put(ctx, :_name, name)
+    {:noreply, put_in(state.values, Map.put(values, key_map, value))}
+  end
+  
   @impl true
   def handle_cast(:push_to_prometheus, %{values: values, prefix: prefix} = state) do
     body =
@@ -52,7 +73,7 @@ defmodule Promethex do
       |> Enum.join("\n")
     body = body <> "\n"
     IO.puts "sending: #{body}"
-    HTTPoison.post("#{prometheus_url}/metrics/job/#{prefix}", body)
+    HTTPoison.post("#{prometheus_url()}/metrics/job/#{prefix}", body)
     |> case do
       {:ok, %{status_code: code}} when code >= 300 ->
         IO.puts "ERROR PUSHING TO PROMETHEUS: status-code = #{code}"
