@@ -46,11 +46,11 @@ defmodule Promethex do
     {:noreply, put_in(state.values, Map.put(values, key_map, last+1))}
   end
 
-  def handle_cast({:put, value, name}, %{values: values} = state) do
+  def handle_cast({:put, name, value}, %{values: values} = state) do
     {:noreply, put_in(state.values, Map.put(values, name, value))}
   end
 
-  def handle_cast({:put, value, name, ctx}, %{values: values} = state) do
+  def handle_cast({:put, name, value, ctx}, %{values: values} = state) do
     key_map = Map.put(ctx, :_name, name)
     {:noreply, put_in(state.values, Map.put(values, key_map, value))}
   end
